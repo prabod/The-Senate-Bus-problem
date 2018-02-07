@@ -1,10 +1,30 @@
+import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
+import java.util.Random;
 
 public class CP_LAB3 {
     static Semaphore mutex;
     static Semaphore bus;
     static Semaphore gate;
     static int waiting;
+    static Random random;
+    long clock;
+    long nextBus;
+    long nextRider;
+    float busLambda;
+    float riderLambda;
+    ArrayList<Rider> riders = new ArrayList<>();
+    ArrayList<Bus> buses = new ArrayList<>();
+
+    CP_LAB3(float busLambda, float riderLambda) {
+        this.busLambda = busLambda;
+        this.riderLambda = riderLambda;
+        this.nextRider = 0L;
+        this.nextBus = 0L;
+        random = new Random();
+        System.out.println("init");
+        init();
+    }
 
     private static class Bus extends Thread {
         int busNumber;
@@ -64,18 +84,52 @@ public class CP_LAB3 {
         }
     }
 
-    public static void main(String[] args) {
+    public void updateClock(long clock) {
+        this.clock = clock;
+        if (nextBus != 0L && nextRider != 0L) {
+            if (this.clock >= nextBus) {
+                synchronized (this) {
+                    Bus bus = new Bus(buses.size());
+                    buses.add(bus);
+                    nextBus += nextTime(busLambda);
+                    bus.start();
+                }
+            }
+            if (this.clock >= nextRider) {
+                synchronized (this) {
+                    Rider rider = new Rider(riders.size());
+                    riders.add(rider);
+                    nextRider += nextTime(riderLambda);
+                    rider.start();
+                }
+            }
+//            System.out.println(nextBus + " "+ nextRider+ " "+ this.clock);
+        } else {
+//            System.out.println("bus"+nextTime(busLambda));
+            nextBus = nextTime(busLambda);
+            nextRider = nextTime(riderLambda);
+            System.out.println(nextBus + " " + nextRider);
+        }
+
+    }
+
+    public long nextTime(float arrivalMeanTime) {
+        float lambda = 1 / arrivalMeanTime;
+        return Math.round(-Math.log(1 - random.nextFloat()) / lambda);
+    }
+
+    void init() {
         mutex = new Semaphore(1);
         bus = new Semaphore(0);
         gate = new Semaphore(0);
         waiting = 0;
-        Rider[] riders = new Rider[100];
-        for (int i = 0; i < 100; i++) {
-            riders[i] = new Rider(i);
-            riders[i].start();
-        }
-        Bus nus = new Bus(1);
-        nus.start();
+//        Rider[] riders = new Rider[100];
+//        for (int i = 0; i < 100; i++) {
+//            riders[i] = new Rider(i);
+//            riders[i].start();
+//        }
+//        Bus nus = new Bus(1);
+//        nus.start();
 
     }
 }
