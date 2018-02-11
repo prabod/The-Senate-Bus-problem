@@ -1,3 +1,6 @@
+/**
+ * Tick class represents a logical clock.
+ */
 public class Tick implements Runnable {
     float tickTosec;
     long time;
@@ -18,7 +21,7 @@ public class Tick implements Runnable {
         long delta_time;
         long time_per_timestep = (long) (1000 / tickTosec);
         while (true) { // keep running
-            // update game logic once for every tick passed
+            // update the simulation clock once for every tick passed
             long now = System.currentTimeMillis();
             while (time_passed >= time_per_timestep) {
                 time += 1;
